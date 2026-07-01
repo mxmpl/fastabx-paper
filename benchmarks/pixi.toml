@@ -26,6 +26,9 @@ python = ">=3.14.6,<3.15"
 [feature.fastabx.pypi-dependencies]
 fastabx = ">=0.8.0, <0.9"
 h5features = ">=2.0.0, <3"
+torchaudio = ">=2.11.0"
+torchcodec = ">=0.14.0"
+tqdm = ">=4.68.3"
 
 [feature.fastabx.pypi-options]
 no-build = true
@@ -37,15 +40,13 @@ benchmark-abxpy = { description = "Run the ABXpy benchmark", cmd = "python bench
 python = "==3.8"
 abx = "==0.4.3"
 h5features = "==1.4.1"
-h5py = "==2.10.0"
-numpy = ">=1.24.4,<2"
+h5py = "==2.10.0"  # 3.x returns HDF5 strings as bytes, which breaks ABXpy's h5io
+numpy = "==1.23.5"  # last release keeping np.float / np.int / np.typeDict for ABXpy 0.4.3 and h5py 2.10
 scipy = ">=1.10.1,<2"
-setuptools = "==59.8.0"
 cython = ">=3.0.11,<4"
 pytables = ">=3.6.1,<4"
 pandas = ">=2.0.3,<3"
 editdistance = ">=0.6.2,<0.7"
-polars = ">=1.5.0,<2"
 
 [feature.librilight.tasks]
 benchmark-librilight = { description = "Run the Libri-Light ABX benchmark", cmd = "python benchmark_librilight.py {{ item }} {{ root }}", args = ["item", "root"] }

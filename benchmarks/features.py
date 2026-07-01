@@ -38,7 +38,7 @@ def extract_hubert_features(
     bundle = torchaudio.pipelines.HUBERT_BASE
     model = bundle.get_model().eval().to(device)
     decoder = WavDecoder if extension == ".wav" else AudioDecoder
-    writer = h5features.Writer(path_archive)
+    writer = h5features.Writer(path_archive, version=h5features.Version.v1_1)
 
     for path in tqdm(list(path_audio.rglob(f"*{extension}"))):
         samples = decoder(path).get_all_samples()

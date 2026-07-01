@@ -1,7 +1,7 @@
 import argparse
+import multiprocessing
 import time
-import polars as pl
-import polars.selectors as cs
+import pandas as pd
 from datetime import timedelta
 from pathlib import Path
 
@@ -12,29 +12,16 @@ from ABXpy.distance import run as distance
 
 
 def collapse_score(path):
-    extract = (
-        pl.col("by")
-        .str.strip_chars("()")
-        .str.split_exact(", ", 2)
-        .struct.rename_fields(["prev-phone", "next-phone", "speaker"])
-        .struct.unnest()
-    )
-    df = (
-        pl.scan_csv(path, separator="\t")
-        .rename({"phone_1": "#phone", "phone_2": "#phone_b", "n": "size"})
-        .with_columns((1 - pl.col("score")).alias("score"), extract)
-        .with_columns(
-            pl.col("prev-phone").str.strip_chars("'"),
-            pl.col("next-phone").str.strip_chars("'"),
-            pl.col("speaker").cast(pl.Int64),
-        )
-        .select("#phone", "speaker", "next-phone", "prev-phone", "#phone_b", "score", "size")
-        .sort("#phone", "#phone_b", "speaker", "next-phone", "prev-phone")
-        .collect()
-    )
+    df = pd.read_csv(path, sep="\t").rename(columns={"phone_1": "#phone", "phone_2": "#phone_b", "n": "size"})
+    df["score"] = 1 - df["score"]
+    parts = df["by"].str.strip("()").str.split(", ", n=2, expand=True)
+    df["prev-phone"] = parts[0].str.strip("'")
+    df["next-phone"] = parts[1].str.strip("'")
+    df["speaker"] = parts[2].astype("int64")
+    df = df[["#phone", "speaker", "next-phone", "prev-phone", "#phone_b", "score", "size"]]
     for level in [("next-phone", "prev-phone"), ("speaker",)]:
-        group_key = cs.exclude("score", "size", *level)
-        df = df.group_by(group_key, maintain_order=True).agg(pl.col("score").mean(), pl.col("size").sum())
+        group_key = [c for c in df.columns if c not in ("score", "size", *level)]
+        df = df.groupby(group_key, sort=False, as_index=False).agg({"score": "mean", "size": "sum"})
     return df["score"].mean()
 
 
@@ -42,7 +29,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("item")
     parser.add_argument("root")
+    parser.add_argument("--njobs", type=int, default=4)
     args = parser.parse_args()
+    if args.njobs > 1:  # HDF5 is not fork-safe
+        multiprocessing.set_start_method("forkserver")
 
     item, root = Path(args.item), Path(args.root)
     path_task, path_features = str(root / "task.abx"), str(root / "hubert.features")
@@ -54,7 +44,7 @@ if __name__ == "__main__":
     task = Task(args.item, "phone", by=["prev-phone", "next-phone", "speaker"], across=None, verbose=True)
     task.generate_triplets(path_task)
     print("DISTANCE")
-    distance(path_features, path_task, path_dist, normalized=1, njobs=1)  # njobs > 1 crashes
+    distance(path_features, path_task, path_dist, normalized=1, njobs=args.njobs)
     print("SCORE")
     score(path_task, path_dist, path_score)
     print("ANALYZE")
