@@ -7,6 +7,7 @@ import sys
 import time
 import tempfile
 
+import torch
 from benchmark_utils import write_result
 from zrc_abx2 import EvalArgs, EvalABX
 
@@ -26,7 +27,7 @@ if __name__ == "__main__":
             path_checkpoint=None,
             file_extension=".pt",
             feature_size=0.02,
-            cuda=True,
+            cuda=torch.cuda.is_available(),
             speaker_mode="within",
             context_mode="within",
             distance_mode="cosine",
