@@ -6,58 +6,34 @@
 
 ## Benchmark fastabx against ABXpy and Libri-Light ABX
 
-### Setup
-
-You need to have downloaded [LibriSpeech dev-clean](https://www.openslr.org/resources/12/dev-clean.tar.gz).
-
-Extract HuBERT features (replace the path to LibriSpeech dev-clean with your actual path) and format them to h5features:
-```bash
-uv run extract_features.py /path/to/LibriSpeech/dev-clean ./assets/hubert
-uv run https://raw.githubusercontent.com/bootphon/fastabx/refs/heads/main/scripts/convert_features.py h5 ./assets/hubert ./assets/abxpy/hubert.h5f --step 0.02
-```
-
-### fastabx vs ABXpy
-
-To benchmark ABXpy, create a conda environment with the exact dependencies and run the full pipeline (~2h):
-```bash
-micromamba create -f ./assets/abxpy.yml
-micromamba activate ABXpy
-python run_abxpy.py ./assets/triphone-dev-clean.item ./assets/abxpy
-micromamba deactivate
-```
-
-And fastabx (~2min):
-```bash
-uv run benchmark_fastabx.py ./assets/triphone-dev-clean.item ./assets/hubert
-```
-
-### fastabx vs Libri-Light ABX
-
-To benchmark Libri-Light (~5min):
+The benchmarks are fully automated with [pixi](https://pixi.sh). From the
+`benchmarks/` directory, run the whole pipeline on a LibriSpeech subset
+(`dev-clean` or `dev-other`):
 
 ```bash
-CC="gcc" uv run benchmark_librilight.py ./assets/triphone-dev-clean.item ./assets/hubert
+cd benchmarks
+pixi run benchmark dev-clean
 ```
 
-And fastabx (~2min):
-```bash
-FASTABX_WITH_LIBRILIGHT_BUG=1 uv run benchmark_fastabx.py ./assets/triphone-dev-clean.item ./assets/hubert
-```
+Each pinned dependency lives in its own environment, so a single command:
+
+1. downloads and extracts the LibriSpeech subset,
+2. extracts the HuBERT features (`.pt` files and an h5features archive),
+3. runs the three benchmarks: fastabx (with and without the Libri-Light bug), ABXpy, and Libri-Light ABX.
+
+Individual steps are available as separate tasks (`pixi task list`).
 
 ## Reproduce figures from the paper
 
 This saves figures to PDF files:
 
 ```bash
-uv run gaussians.py
-uv run correlation.py
-uv run phoneme_vs_speaker.py
+uv run figures/gaussians.py
+uv run figures/correlation.py
+uv run figures/phoneme_vs_speaker.py
 ```
 
 ## Citation
-
-A preprint is available on arXiv: https://arxiv.org/abs/2505.02692 \
-If you use fastabx in your work, please cite it:
 
 ```bibtex
 @misc{fastabx,

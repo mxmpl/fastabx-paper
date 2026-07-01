@@ -1,11 +1,3 @@
-# /// script
-# requires-python = ">=3.12"
-# dependencies = [
-#     "matplotlib>=3.10.1",
-#     "numpy>=2.2.4",
-#     "polars>=1.27.1",
-# ]
-# ///
 from pathlib import Path
 
 import matplotlib.pyplot as plt

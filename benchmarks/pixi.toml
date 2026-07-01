@@ -1,0 +1,62 @@
+[workspace]
+authors = ["Maxime Poli"]
+channels = ["coml", "conda-forge"]
+name = "benchmarks"
+platforms = [{ platform = "linux-64", glibc = "2.34" }]
+version = "0.1.0"
+
+[tasks]
+fetch = { description = "Download and extract a LibriSpeech subset into data/", args = [{ arg = "subset", choices = ["dev-clean", "dev-other"] }], cmd = "curl -L -o data/{{ subset }}.tar.gz https://openslr.trmal.net/resources/12/{{ subset }}.tar.gz && tar -xzf data/{{ subset }}.tar.gz -C data && rm data/{{ subset }}.tar.gz" }
+benchmark = { description = "Fetch data, extract features, and run the three ABX benchmarks on a subset", args = [{ arg = "subset", choices = ["dev-clean", "dev-other"] }], depends-on = [
+    { task = "fetch", args = ["{{ subset }}"] },
+    { task = "features", environment = "fastabx", args = ["data/LibriSpeech/{{ subset }}", "data/features/{{ subset }}", "data/features/{{ subset }}/hubert.features"] },
+    { task = "benchmark-fastabx", environment = "fastabx", args = ["data/triphone-{{ subset }}.item", "data/features/{{ subset }}", "0"] },
+    { task = "benchmark-fastabx", environment = "fastabx", args = ["data/triphone-{{ subset }}.item", "data/features/{{ subset }}", "1"] },
+    { task = "benchmark-abxpy", environment = "abxpy", args = ["data/triphone-{{ subset }}.item", "data/features/{{ subset }}"] },
+    { task = "benchmark-librilight", environment = "librilight", args = ["data/triphone-{{ subset }}.item", "data/features/{{ subset }}"] },
+] }
+
+[feature.fastabx.tasks]
+features = { description = "Extract HuBERT features to .pt files and an h5features archive", cmd = "python features.py {{ audio }} {{ root }} {{ archive }}", args = ["audio", "root", "archive"] }
+benchmark-fastabx = { description = "Run the fastabx ABX benchmark (set librilight_bug=1 to reproduce the Libri-Light bug)", cmd = "FASTABX_WITH_LIBRILIGHT_BUG={{ librilight_bug }} python benchmark_fastabx.py {{ item }} {{ root }}", args = ["item", "root", { arg = "librilight_bug", default = "0", choices = ["0", "1"] }] }
+
+[feature.fastabx.dependencies]
+python = ">=3.14.6,<3.15"
+
+[feature.fastabx.pypi-dependencies]
+fastabx = ">=0.8.0, <0.9"
+h5features = ">=2.0.0, <3"
+
+[feature.fastabx.pypi-options]
+no-build = true
+
+[feature.abxpy.tasks]
+benchmark-abxpy = { description = "Run the ABXpy benchmark", cmd = "python benchmark_abxpy.py {{ item }} {{ root }}", args = ["item", "root"] }
+
+[feature.abxpy.dependencies]
+python = "==3.8"
+abx = "==0.4.3"
+h5features = "==1.4.1"
+h5py = "==2.10.0"
+numpy = ">=1.24.4,<2"
+scipy = ">=1.10.1,<2"
+setuptools = "==59.8.0"
+cython = ">=3.0.11,<4"
+pytables = ">=3.6.1,<4"
+pandas = ">=2.0.3,<3"
+editdistance = ">=0.6.2,<0.7"
+polars = ">=1.5.0,<2"
+
+[feature.librilight.tasks]
+benchmark-librilight = { description = "Run the Libri-Light ABX benchmark", cmd = "python benchmark_librilight.py {{ item }} {{ root }}", args = ["item", "root"] }
+
+[feature.librilight.dependencies]
+python = ">=3.14.6,<3.15"
+
+[feature.librilight.pypi-dependencies]
+zerospeech-libriabx2 = "==0.9.8"
+
+[environments]
+abxpy = ["abxpy"]
+fastabx = ["fastabx"]
+librilight = ["librilight"]

@@ -1,6 +1,6 @@
 # /// script
 # requires-python = ">=3.12"
-# dependencies = ["fastabx>=0.4.1"]
+# dependencies = ["fastabx==0.8.0"]
 # ///
 import argparse
 import time

@@ -1,11 +1,3 @@
-# /// script
-# requires-python = ">=3.12"
-# dependencies = [
-#     "fastabx>=0.4.1",
-#     "torch>=2.7.1",
-#     "torchaudio>=2.7.1",
-# ]
-# ///
 import argparse
 import tempfile
 from pathlib import Path

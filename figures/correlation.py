@@ -1,13 +1,3 @@
-# /// script
-# requires-python = ">=3.12"
-# dependencies = [
-#     "fastabx>=0.4.1",
-#     "matplotlib>=3.10.1",
-#     "numpy>=2.2.4",
-#     "scipy>=1.15.2",
-#     "torch>=2.7.1",
-# ]
-# ///
 from pathlib import Path
 from typing import Literal
 
