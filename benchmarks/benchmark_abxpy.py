@@ -1,10 +1,10 @@
 import argparse
 import multiprocessing
 import time
-import pandas as pd
 from datetime import timedelta
 from pathlib import Path
 
+import pandas as pd
 from ABXpy.analyze import analyze
 from ABXpy.score import score
 from ABXpy.task import Task
