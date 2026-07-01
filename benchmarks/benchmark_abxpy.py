@@ -1,10 +1,10 @@
 import argparse
 import multiprocessing
 import time
-from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
+from benchmark_utils import write_result
 from ABXpy.analyze import analyze
 from ABXpy.score import score
 from ABXpy.task import Task
@@ -30,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("item")
     parser.add_argument("root")
     parser.add_argument("--njobs", type=int, default=4)
+    parser.add_argument("--output", default="results.json")
     args = parser.parse_args()
     if args.njobs > 1:  # HDF5 is not fork-safe
         multiprocessing.set_start_method("forkserver")
@@ -51,6 +52,5 @@ if __name__ == "__main__":
     analyze(path_task, path_score, path_csv)
     end = time.perf_counter()
 
-    score = collapse_score(path_csv)
-    print(f"Score: {score:.3%}")
-    print(f"Time: {timedelta(seconds=end - start)}")
+    result = collapse_score(path_csv)
+    write_result(args.output, "abxpy", args.item, result, end - start)

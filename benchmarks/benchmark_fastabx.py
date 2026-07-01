@@ -3,17 +3,21 @@
 # dependencies = ["fastabx==0.8.0"]
 # ///
 import argparse
+import os
 import time
-from datetime import timedelta
 
 import torch
+from benchmark_utils import write_result
 from fastabx import zerospeech_abx
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("item")
     parser.add_argument("root")
+    parser.add_argument("--output", default="results.json")
     args = parser.parse_args()
+
+    benchmark = "fastabx-librilight-bug" if os.environ.get("FASTABX_WITH_LIBRILIGHT_BUG") == "1" else "fastabx"
 
     start = time.perf_counter()
     score = zerospeech_abx(
@@ -30,5 +34,4 @@ if __name__ == "__main__":
         seed=0,
     )
     end = time.perf_counter()
-    print(f"Score: {score:.3%}")
-    print(f"Time: {timedelta(seconds=end - start)}")
+    write_result(args.output, benchmark, args.item, score, end - start)

@@ -6,14 +6,15 @@ import argparse
 import sys
 import time
 import tempfile
-from datetime import timedelta
 
+from benchmark_utils import write_result
 from zrc_abx2 import EvalArgs, EvalABX
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("item")
     parser.add_argument("root")
+    parser.add_argument("--output", default="results.json")
     args = parser.parse_args()
 
     tmpdir = tempfile.TemporaryDirectory()
@@ -38,5 +39,4 @@ if __name__ == "__main__":
     )[0]["score"]
     end = time.perf_counter()
     tmpdir.cleanup()
-    print(f"Score: {score:.3%}")
-    print(f"Time: {timedelta(seconds=end - start)}")
+    write_result(args.output, "librilight", args.item, score, end - start)
