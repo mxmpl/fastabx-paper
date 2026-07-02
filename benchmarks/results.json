@@ -100,5 +100,18 @@
     ],
     "peak_cpu_memory_bytes": 13001805824,
     "peak_cuda_memory_bytes": null
+  },
+  {
+    "benchmark": "abxpy",
+    "subset": "dev-clean",
+    "score": 0.03378055170581803,
+    "device": "cpu",
+    "runs": 1,
+    "time_seconds_mean": 3392.389790723013,
+    "time_seconds_all": [
+      3392.389790723013
+    ],
+    "peak_cpu_memory_bytes": 26486472704,
+    "peak_cuda_memory_bytes": null
   }
 ]
