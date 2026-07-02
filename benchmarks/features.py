@@ -11,17 +11,17 @@
 import argparse
 from pathlib import Path
 
-import h5features
+import numpy as np
 import torch
 import torchaudio
+from h5features import Item, Version, Writer
 from torch.nn import functional as F
 from torchcodec.decoders import AudioDecoder, WavDecoder
 from tqdm import tqdm
-import numpy as np
 
 
 def get_times(length: int, step: float) -> np.ndarray:
-    return np.arange(step / 2, length * step, step, dtype=np.float64)
+    return np.arange(step / 2, length * step, step, dtype=np.float32)
 
 
 @torch.inference_mode()
@@ -38,7 +38,7 @@ def extract_hubert_features(
     bundle = torchaudio.pipelines.HUBERT_BASE
     model = bundle.get_model().eval().to(device)
     decoder = WavDecoder if extension == ".wav" else AudioDecoder
-    writer = h5features.Writer(path_archive, version=h5features.Version.v1_1)
+    writer = Writer(path_archive, version=Version.v1_1)
 
     for path in tqdm(list(path_audio.rglob(f"*{extension}"))):
         samples = decoder(path).get_all_samples()
@@ -47,7 +47,7 @@ def extract_hubert_features(
         all_features, _ = model.extract_features(x.to(device))  # ty:ignore[call-non-callable]
         features = all_features[layer - 1].squeeze().cpu()
         torch.save(features, path_features / f"{path.stem}.pt")
-        writer.write(h5features.Item(path.stem, features.numpy(), get_times(features.size(0), 0.02)))
+        writer.write(Item(path.stem, features.numpy().astype(np.float32), get_times(features.size(0), 0.02)))
 
 
 if __name__ == "__main__":

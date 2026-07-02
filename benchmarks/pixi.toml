@@ -5,6 +5,14 @@ name = "benchmarks"
 platforms = [{ platform = "linux-64", glibc = "2.34" }]
 version = "0.1.0"
 
+[dependencies]
+psutil = ">=5.9"
+
+[environments]
+abxpy = ["abxpy"]
+fastabx = ["fastabx"]
+librilight = ["librilight"]
+
 [tasks."fetch"]
 description = "Download and extract a LibriSpeech subset into data/"
 args = [{ arg = "subset", choices = ["dev-clean", "dev-other"] }]
@@ -44,21 +52,6 @@ depends-on = [
   ] },
 ]
 
-[feature.fastabx.tasks."features"]
-description = "Extract HuBERT features to .pt files and an h5features archive"
-cmd = "python features.py {{ audio }} {{ root }} {{ archive }}"
-args = ["audio", "root", "archive"]
-
-[feature.fastabx.tasks."benchmark-fastabx"]
-description = "Run the fastabx ABX benchmark (set librilight_bug=1 to reproduce the Libri-Light bug)"
-cmd = "FASTABX_WITH_LIBRILIGHT_BUG={{ librilight_bug }} python benchmark_fastabx.py {{ item }} {{ root }} --output {{ output }}"
-args = [
-  "item",
-  "root",
-  { arg = "output", default = "results.json" },
-  { arg = "librilight_bug", default = "0", choices = ["0", "1"] }
-]
-
 [feature.fastabx.dependencies]
 python = ">=3.14.6,<3.15"
 
@@ -72,10 +65,21 @@ tqdm = ">=4.68.3"
 [feature.fastabx.pypi-options]
 no-build = true
 
-[feature.abxpy.tasks."benchmark-abxpy"]
-description = "Run the ABXpy benchmark"
-cmd = "python benchmark_abxpy.py {{ item }} {{ root }} --output {{ output }}"
-args = ["item", "root", { arg = "output", default = "results.json" }]
+[feature.fastabx.tasks."features"]
+description = "Extract HuBERT features to .pt files and an h5features archive"
+cmd = "python features.py {{ audio }} {{ root }} {{ archive }}"
+args = ["audio", "root", "archive"]
+
+[feature.fastabx.tasks."benchmark-fastabx"]
+description = "Run the fastabx ABX benchmark (set librilight_bug=1 to reproduce the Libri-Light bug)"
+cmd = "FASTABX_WITH_LIBRILIGHT_BUG={{ librilight_bug }} python benchmark_fastabx.py {{ item }} {{ root }} --output {{ output }} --runs {{ runs }}"
+args = [
+  "item",
+  "root",
+  { arg = "output", default = "results.json" },
+  { arg = "librilight_bug", default = "0", choices = ["0", "1"] },
+  { arg = "runs", default = "5" }
+]
 
 [feature.abxpy.dependencies]
 python = "==3.8"
@@ -89,10 +93,10 @@ pytables = ">=3.6.1,<4"
 pandas = ">=2.0.3,<3"
 editdistance = ">=0.6.2,<0.7"
 
-[feature.librilight.tasks."benchmark-librilight"]
-description = "Run the Libri-Light ABX benchmark"
-cmd = "python benchmark_librilight.py {{ item }} {{ root }} --output {{ output }}"
-args = ["item", "root", { arg = "output", default = "results.json" }]
+[feature.abxpy.tasks."benchmark-abxpy"]
+description = "Run the ABXpy benchmark"
+cmd = "python benchmark_abxpy.py {{ item }} {{ root }} --output {{ output }} --runs {{ runs }}"
+args = ["item", "root", { arg = "output", default = "results.json" }, { arg = "runs", default = "1" }]
 
 [feature.librilight.dependencies]
 python = ">=3.14.6,<3.15"
@@ -100,7 +104,7 @@ python = ">=3.14.6,<3.15"
 [feature.librilight.pypi-dependencies]
 zerospeech-libriabx2 = "==0.9.8"
 
-[environments]
-abxpy = ["abxpy"]
-fastabx = ["fastabx"]
-librilight = ["librilight"]
+[feature.librilight.tasks."benchmark-librilight"]
+description = "Run the Libri-Light ABX benchmark"
+cmd = "python benchmark_librilight.py {{ item }} {{ root }} --output {{ output }} --runs {{ runs }}"
+args = ["item", "root", { arg = "output", default = "results.json" }, { arg = "runs", default = "5" }]

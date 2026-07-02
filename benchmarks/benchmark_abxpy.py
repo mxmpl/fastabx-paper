@@ -1,14 +1,13 @@
 import argparse
 import multiprocessing
-import time
 from pathlib import Path
 
 import pandas as pd
-from benchmark_utils import write_result
 from ABXpy.analyze import analyze
+from ABXpy.distance import run as distance
 from ABXpy.score import score
 from ABXpy.task import Task
-from ABXpy.distance import run as distance
+from benchmark_utils import run_benchmark, write_result
 
 
 def collapse_score(path):
@@ -31,26 +30,29 @@ if __name__ == "__main__":
     parser.add_argument("root")
     parser.add_argument("--njobs", type=int, default=4)
     parser.add_argument("--output", default="results.json")
+    parser.add_argument("--runs", type=int, default=1)
     args = parser.parse_args()
     if args.njobs > 1:  # HDF5 is not fork-safe
         multiprocessing.set_start_method("forkserver")
 
-    item, root = Path(args.item), Path(args.root)
+    root = Path(args.root)
     path_task, path_features = str(root / "task.abx"), str(root / "hubert.features")
     path_dist, path_score = str(root / "hubert.distance"), str(root / "triplets.score")
     path_csv = str(root / "results.csv")
 
-    start = time.perf_counter()
-    print("TASK")
-    task = Task(args.item, "phone", by=["prev-phone", "next-phone", "speaker"], across=None, verbose=True)
-    task.generate_triplets(path_task)
-    print("DISTANCE")
-    distance(path_features, path_task, path_dist, normalized=1, njobs=args.njobs)
-    print("SCORE")
-    score(path_task, path_dist, path_score)
-    print("ANALYZE")
-    analyze(path_task, path_score, path_csv)
-    end = time.perf_counter()
+    def run():
+        for stale in (path_task, path_dist, path_score, path_csv):
+            Path(stale).unlink(missing_ok=True)
+        print("TASK")
+        task = Task(args.item, "phone", by=["prev-phone", "next-phone", "speaker"], across=None, verbose=True)
+        task.generate_triplets(path_task)
+        print("DISTANCE")
+        distance(path_features, path_task, path_dist, normalized=1, njobs=args.njobs)
+        print("SCORE")
+        score(path_task, path_dist, path_score)
+        print("ANALYZE")
+        analyze(path_task, path_score, path_csv)
+        return collapse_score(path_csv)
 
-    result = collapse_score(path_csv)
-    write_result(args.output, "abxpy", args.item, result, end - start)
+    result, stats = run_benchmark(run, with_cuda=False, runs=args.runs)
+    write_result(args.output, "abxpy", args.item, result, stats)
