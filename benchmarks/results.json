@@ -49,5 +49,56 @@
     ],
     "peak_cpu_memory_bytes": 9846468608,
     "peak_cuda_memory_bytes": 9451531264
+  },
+  {
+    "benchmark": "fastabx",
+    "subset": "dev-clean",
+    "score": 0.033780551912291276,
+    "device": "cpu",
+    "runs": 5,
+    "time_seconds_mean": 29.748942031199114,
+    "time_seconds_all": [
+      30.625982009980362,
+      29.183507716021268,
+      29.342053601983935,
+      30.21512146401801,
+      29.378045363991987
+    ],
+    "peak_cpu_memory_bytes": 15629565952,
+    "peak_cuda_memory_bytes": null
+  },
+  {
+    "benchmark": "fastabx-librilight-bug",
+    "subset": "dev-clean",
+    "score": 0.030630426202967426,
+    "device": "cpu",
+    "runs": 5,
+    "time_seconds_mean": 29.24186468300177,
+    "time_seconds_all": [
+      29.929054007981904,
+      29.158478511002613,
+      29.614242921001278,
+      28.859034517023247,
+      28.648513457999798
+    ],
+    "peak_cpu_memory_bytes": 14643679232,
+    "peak_cuda_memory_bytes": null
+  },
+  {
+    "benchmark": "librilight",
+    "subset": "dev-clean",
+    "score": 0.03063042275607586,
+    "device": "cpu",
+    "runs": 5,
+    "time_seconds_mean": 370.1683208106086,
+    "time_seconds_all": [
+      374.64027585901204,
+      373.9367475339968,
+      368.2130969190039,
+      367.85691957501695,
+      366.19456416601315
+    ],
+    "peak_cpu_memory_bytes": 13001805824,
+    "peak_cuda_memory_bytes": null
   }
 ]

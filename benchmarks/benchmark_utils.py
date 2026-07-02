@@ -53,6 +53,8 @@ def run_benchmark(fn, *, with_cuda, runs=1):
         import torch
 
         track_cuda = torch.cuda.is_available()
+    else:
+        track_cuda = False
     times, peak_cpu, peak_cuda, score = [], None, None, None
     for _ in range(runs):
         if track_cuda:
@@ -85,10 +87,10 @@ def write_result(output, benchmark, item, score, stats):
     output = Path(output)
     subset = subset_from_item(item)
     record = {"benchmark": benchmark, "subset": subset, "score": score, **stats}
-    results = []
+    result = []
     if output.exists():
-        results = json.loads(output.read_text())
-    results = [r for r in results if (r["benchmark"], r["subset"]) != (benchmark, subset)]
-    results.append(record)
+        result = json.loads(output.read_text())
+    result = [r for r in result if (r["benchmark"], r["subset"], r["device"]) != (benchmark, subset, stats["device"])]
+    result.append(record)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(results, indent=2) + "\n")
+    output.write_text(json.dumps(result, indent=2) + "\n")

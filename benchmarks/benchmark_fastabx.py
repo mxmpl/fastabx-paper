@@ -3,12 +3,12 @@
 # dependencies = ["fastabx==0.8.0", "psutil"]
 # ///
 import argparse
-import os
 from pathlib import Path
 
 import torch
 from benchmark_utils import run_benchmark, subset_from_item, write_result
 from fastabx import zerospeech_abx
+from fastabx.utils import with_librilight_bug
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser.add_argument("--snapshot-dir", default=None)
     args = parser.parse_args()
 
-    benchmark = "fastabx-librilight-bug" if os.environ.get("FASTABX_WITH_LIBRILIGHT_BUG") == "1" else "fastabx"
+    benchmark = "fastabx-librilight-bug" if with_librilight_bug() else "fastabx"
     subset = subset_from_item(args.item)
     snapshot_dir = args.snapshot_dir or Path(args.output).parent / "snapshots"
 
